@@ -146,6 +146,7 @@ name = "rust-demo"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "tests",
 ]
 
 [[package]]
@@ -158,6 +159,12 @@ dependencies = [
  "quote",
  "unicode-ident",
 ]
+
+[[package]]
+name = "tests"
+version = "0.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fad3c473829fd9e353d4b176269858a55a037e0141bea095890afdbdd316062a"
 
 [[package]]
 name = "unicode-ident"
