@@ -1,8 +1,8 @@
 /**
- * 格式化输出
+ * Hello World
  */
 #[cfg(test)]
-mod demo1 {
+mod hello_world {
     // 推导 `Structure` 的 `fmt::Debug` 实现
     // `Structure` 是一个包含单个 `i32` 的结构体
     #[derive(Debug)]
@@ -20,7 +20,7 @@ mod demo1 {
     }
    
     /**
-     * 调试 (debug) 指令 cargo test demo1::test1 --  --nocapture
+     * 调试 (debug) 测试命令: cargo test hello_world::test1 --  --nocapture
      */
     #[test]
     fn test1() {
@@ -45,7 +45,7 @@ mod demo1 {
     }
 
     /**
-     * 显示 (display) 指令 cargo test demo1::test2 --  --nocapture
+     * 显示 (display) 测试命令: cargo test hello_world::test2 --  --nocapture
      */
     #[test]
     fn test2() {
@@ -144,7 +144,7 @@ mod demo1 {
     }
 
     /**
-     * 测试实例: List 指令 cargo test demo1::test3 --  --nocapture
+     * 测试实例: List 测试命令: cargo test hello_world::test3 --  --nocapture
      */
     #[test]
     fn test3() {
@@ -179,12 +179,111 @@ mod demo1 {
             }
         }
         let v = List(vec![1,2,3]);
-        println!("{}", v)
+        println!("{}", v);
 
         /*
          * 更改程序使vector里面的每一个元素的下标也能够打印出来, 新的结果如下:
          * [0: 1, 1: 2, 2: 3]
          */
+        // impl fmt::Display for List {
+        //     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        //         // 使用元组的下标获取值, 并创建一个 `vec` 的引用
+        //         let vec = &self.0;
+        //         write!(f, "[")?;
+        //         // 使用 `v` 对 `vec` 进行迭代, 并用 `count` 记录迭代次数
+        //         for (count, v) in vec.iter().enumerate() {
+        //             // 对每一个元素 (第一个元素除外) 加上逗号
+        //             if count != 0 {
+        //                 write!(f, ", ")?;
+        //             }
+        //             // 使用 `?` 或 `try!` 来返回错误
+        //             write!(f, "{}: {}", count , v)?;
+        //         }
+        //         // 加上配对中括号, 并返回一个 fmt::Result 值
+        //         write!(f, "]")
+        //     }
+        // }
+        // let v = List(vec![1,2,3]);
+        // println!("{}", v);
+    }
+    /**
+     * 格式化输出 测试命令: cargo test hello_world::test4 --  --nocapture
+     */
+    #[test]
+    fn test4() {
+        /*
+         * 我们已经看到, 格式化的方式是通过格式字符串来指定的:
+         * format!("{}", foo) -> "3735928559"
+         * format!("0x{:X}", foo) -> "0xDEADBEEF"
+         * format!("0o{:o}", foo) -> "0o33653337357"
+         * 根据使用的参数类型是 X, o 还是未指定的, 同样的变量 (foo) 能够格式化成不同的形式
+         * 这个格式化的功能是通过 trait 实现的, 每种参数类型都对应一种 trait 最常见的格式化 trait 就是 Display, 它可以处理参数类型为未指定的情况, 比如 {}
+         */
+        use std::fmt::{self, Formatter, Display};
+        struct City {
+            name: &'static str,
+            // 纬度
+            lat: f32,
+            // 经度
+            lon: f32,
+        }
+        impl Display for City {
+            // `f` 是一个缓冲区 (buffer), 此方法必须将格式化后的字符串写入其中
+            fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+                let lat_c = if self.lat >= 0.0 { 'N' } else { 'S' };
+                let lon_c = if self.lon >= 0.0 { 'E' } else { 'W' };
+                
+                // `write!` 和 `format!` 类似, 但它会将格式化后的字符串写入一个缓冲区 (即第一个参数 f 中)
+                // {:.3} 表示保留小数点后三位
+                write!(f, "{}, {:.3}°{} {:.3}°{}",
+                        self.name, self.lat.abs(), lat_c, self.lon.abs(), lon_c)
+            }
+        }
+        for city in [
+            City { name: "Dublin", lat: 53.347778, lon: -6.259722 },
+            City { name: "Oslo", lat: 59.95, lon: 10.75 },
+            City { name: "Vancouver", lat: 49.25, lon: -123.1 },
+        ].iter() {
+            println!("{}", *city)
+        }
+        
+        /*
+         * 为上面的Color结构体实现fmt::Display, 应得到如下的输出结果:
+         *  RGB (128, 255, 90) 0x80FF5A
+         *  RGB (0, 3, 254) 0x0003FE
+         *  RGB (0, 0, 0) 0x000000
+         */
+        #[derive(Debug)]
+        struct Color {
+            red: u8,
+            green: u8,
+            blue: u8,
+        }
+        impl Display for Color {
+            // `f` 是一个缓冲区 (buffer), 此方法必须将格式化后的字符串写入其中
+            fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+                /*
+                 * 在 Rust 中，格式字符串中的 {:02X} 是一种格式化字符串的语法，
+                 * 它用于将数字按照十六进制格式输出，并保证输出的结果至少有两位，并用零填充不足的部分。
+                 * 具体来说：
+                 * {}：这是默认的格式，表示使用默认的方式输出。
+                 * 02：表示最小宽度为2，如果不足两位则用0填充。
+                 * X：表示将数字转换为大写十六进制。
+                 * 因此，{:02X} 会将数字以大写的十六进制形式输出，如果不足两位则在前面用零填充。
+                 * 在上述代码中，{:02X} 用于输出颜色的十六进制表示，并确保每个分量都有两位，不足的地方用零填充。
+                 */
+                // 使用 write! 将格式化后的字符串写入缓冲区
+                write!(f, "RGB ({}, {}, {}) 0x{:02X}{:02X}{:02X}",
+                self.red, self.green, self.blue, self.red, self.green, self.blue)
+            }
+        }
+        for color in [
+            Color { red: 128, green: 255, blue: 90 },
+            Color { red: 0, green: 3, blue: 254 },
+            Color { red: 0, green: 0, blue: 0 },
+        ].iter() {
+            println!("{}", *color)
+        }
 
     }
 }
